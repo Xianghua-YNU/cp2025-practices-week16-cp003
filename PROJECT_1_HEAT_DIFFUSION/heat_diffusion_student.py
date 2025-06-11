@@ -99,18 +99,22 @@ def plot_3d_solution(u, dx, dt, Nt, title):
     ax.set_title(title)
     plt.show()
 
+    
 if __name__ == "__main__":
-    print("=== 铝棒热传导问题学生实现 ===")
+    print("=== 铝棒热传导问题参考答案 ===")
+    print("1. 基本热传导模拟")
+    u = basic_heat_diffusion()
+    plot_3d_solution(u, dx, dt, Nt, title='Task 1: Heat Diffusion Solution')
+
+    print("\n2. 解析解")
+    s = analytical_solution()
+    plot_3d_solution(s, dx, dt, Nt, title='Analytical Solution')
+
+    print("\n3. 数值解稳定性分析")
     stability_analysis()
-
-    u1 = basic_heat_diffusion()
-    plot_3d_solution(u1, dx, dt, Nt, "任务1：基本热传导模拟")
-
-    u2 = analytical_solution()
-    plot_3d_solution(u2, dx, dt, Nt, "任务2：解析解")
-
-    u3 = different_initial_condition()
-    plot_3d_solution(u3, dx, dt, Nt, "任务4：不同初始条件")
-
-    u4 = heat_diffusion_with_cooling()
-    plot_3d_solution(u4, dx, dt, Nt, "任务5：包含冷却效应的热传导")
+    
+    print("\n4. 不同初始条件模拟")
+    different_initial_condition()
+    
+    print("\n5. 包含牛顿冷却定律的热传导")
+    heat_diffusion_with_cooling()
