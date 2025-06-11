@@ -31,6 +31,7 @@ def basic_heat_diffusion():
     return u
 
 def analytical_solution(n_terms=100):
+    """任务2: 解析解函数"""
     u = np.zeros((Nx, Nt))
     for n in range(Nt):
         t = n * dt
@@ -40,34 +41,50 @@ def analytical_solution(n_terms=100):
     return u
 
 def stability_analysis():
-    r = D * dt / dx**2
-    if r <= 0.5:
-        print(f"稳定：r = {r:.3f} <= 0.5")
-    else:
-        print(f"不稳定：r = {r:.3f} > 0.5")
+    """任务3: 数值解稳定性分析"""
+    dx = 0.01
+    dt = 0.6  # 故意选大步长，导致不稳定
+    r = D * dt / (dx**2)
+    print(f"任务3 - 稳定性参数 r = {r:.3f} (应 <= 0.5)")
+
+    Nx = int(L / dx) + 1
+    Nt = 2000
+
+    u = np.zeros((Nx, Nt))
+    u[:, 0] = 100
+    u[0, :] = 0
+    u[-1, :] = 0
+
+    for j in range(Nt - 1):
+        u[1:-1, j+1] = (1 - 2*r) * u[1:-1, j] + r * (u[2:, j] + u[:-2, j])
+
+    plot_3d_solution(u, dx, dt, Nt, title='任务3：不稳定解 (r > 0.5)')
+
 
 def different_initial_condition():
+    """任务4: 不同初始条件模拟"""
     u = np.zeros((Nx, Nt))
-    u[:, 0] = np.exp(-((x - 0.5)**2) / 0.01)  # 高斯初始条件
+    u[:, 0] = np.exp(-((x - 0.5)**2) / 0.01)  # 高斯初始分布
 
     r = D * dt / dx**2
     for n in range(0, Nt - 1):
-        for i in range(1, Nx - 1):
-            u[i, n+1] = u[i, n] + r * (u[i+1, n] - 2*u[i, n] + u[i-1, n])
+        u[1:-1, n+1] = u[1:-1, n] + r * (u[2:, n] - 2*u[1:-1, n] + u[:-2, n])
     return u
 
 def heat_diffusion_with_cooling():
-    h = 5.0   # 对流换热系数
-    T_inf = 0 # 环境温度
+    """任务5: 包含牛顿冷却定律的热传导"""
+    h = 5.0     # 对流换热系数
+    T_inf = 0   # 环境温度
+
     u = np.zeros((Nx, Nt))
     u[:, 0] = np.sin(np.pi * x)
 
     r = D * dt / dx**2
     beta = h * dt / (C * rho)
     for n in range(0, Nt - 1):
-        for i in range(1, Nx - 1):
-            u[i, n+1] = u[i, n] + r * (u[i+1, n] - 2*u[i, n] + u[i-1, n]) - beta * (u[i, n] - T_inf)
+        u[1:-1, n+1] = u[1:-1, n] + r * (u[2:, n] - 2*u[1:-1, n] + u[:-2, n]) - beta * (u[1:-1, n] - T_inf)
     return u
+
 
 def plot_3d_solution(u, dx, dt, Nt, title):
     fig = plt.figure()
