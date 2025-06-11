@@ -21,84 +21,115 @@ Nt = 2000     # 时间步数
 x = np.linspace(0, L, Nx)
 
 def basic_heat_diffusion():
-    u = np.zeros((Nx, Nt))
-    u[:, 0] = np.sin(np.pi * x)  # 初始条件
+    """任务1: 基本热传导模拟"""
 
-    r = D * dt / dx**2
-    for n in range(0, Nt - 1):
-        for i in range(1, Nx - 1):
-            u[i, n+1] = u[i, n] + r * (u[i+1, n] - 2*u[i, n] + u[i-1, n])
-    return u
-
-def analytical_solution(n_terms=100):
-    """任务2: 解析解函数"""
-    u = np.zeros((Nx, Nt))
-    for n in range(Nt):
-        t = n * dt
-        for m in range(1, n_terms+1):
-            coeff = (4 / (m * np.pi)) * (1 if m % 2 == 1 else 0)
-            u[:, n] += coeff * np.sin(m * np.pi * x) * np.exp(-D * (m * np.pi)**2 * t)
-    return u
-
-def stability_analysis():
-    """任务3: 数值解稳定性分析"""
-    dx = 0.01
-    dt = 0.6  # 故意选大步长，导致不稳定
-    r = D * dt / (dx**2)
-    print(f"任务3 - 稳定性参数 r = {r:.3f} (应 <= 0.5)")
-
-    Nx = int(L / dx) + 1
-    Nt = 2000
-
+    r = D*dt/(dx**2)
+    print(f"任务1 - 稳定性参数 r = {r}")
+    
     u = np.zeros((Nx, Nt))
     u[:, 0] = 100
     u[0, :] = 0
     u[-1, :] = 0
+    
+    for j in range(Nt-1):
+        u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
+    
+    return u
 
-    for j in range(Nt - 1):
-        u[1:-1, j+1] = (1 - 2*r) * u[1:-1, j] + r * (u[2:, j] + u[:-2, j])
+# 任务2: 解析解与数值解比较
+def analytical_solution(n_terms=100):
+    """解析解函数"""
+    x = np.linspace(0, dx*(Nx-1), Nx)
+    t = np.linspace(0, dt*Nt, Nt)
+    x, t = np.meshgrid(x, t)
+    s = 0
+    for i in range(n_terms):
+        j = 2*i + 1
+        s += 400/(j*np.pi) * np.sin(j*np.pi*x/L) * np.exp(-(j*np.pi/L)**2 * t * D)
+    return s.T
 
-    plot_3d_solution(u, dx, dt, Nt, title='任务3：不稳定解 (r > 0.5)')
+# 任务3: 数值解稳定性分析
+def stability_analysis():
+    """任务3: 数值解稳定性分析"""
+    dx = 0.01
+    dt = 0.6  # 使r>0.5
+    r = D*dt/(dx**2)
+    print(f"任务3 - 稳定性参数 r = {r} (r>0.5)")
+    
+    Nx = int(L/dx) + 1
+    Nt = 2000
+    
+    u = np.zeros((Nx, Nt))
+    u[:, 0] = 100
+    u[0, :] = 0
+    u[-1, :] = 0
+    
+    for j in range(Nt-1):
+        u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
+    
+    # 可视化不稳定解
+    plot_3d_solution(u, dx, dt, Nt, title='Task 3: Unstable Solution (r>0.5)')
 
-
+# 任务4: 不同初始条件模拟
 def different_initial_condition():
     """任务4: 不同初始条件模拟"""
+    dx = 0.01
+    dt = 0.5
+    r = D*dt/(dx**2)
+    print(f"任务4 - 稳定性参数 r = {r}")
+    
+    Nx = int(L/dx) + 1
+    Nt = 1000
+    
     u = np.zeros((Nx, Nt))
-    u[:, 0] = np.exp(-((x - 0.5)**2) / 0.01)  # 高斯初始分布
-
-    r = D * dt / dx**2
-    for n in range(0, Nt - 1):
-        u[1:-1, n+1] = u[1:-1, n] + r * (u[2:, n] - 2*u[1:-1, n] + u[:-2, n])
+    u[:51, 0] = 100  # 左半部分初始温度100K
+    u[50:, 0] = 50   # 右半部分初始温度50K
+    u[0, :] = 0
+    u[-1, :] = 0
+    
+    for j in range(Nt-1):
+        u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
+    
+    # 可视化
+    plot_3d_solution(u, dx, dt, Nt, title='Task 4: Temperature Evolution with Different Initial Conditions')
     return u
 
+# 任务5: 包含牛顿冷却定律的热传导
 def heat_diffusion_with_cooling():
     """任务5: 包含牛顿冷却定律的热传导"""
-    h = 5.0     # 对流换热系数
-    T_inf = 0   # 环境温度
-
+    r = D*dt/(dx**2)
+    h = 0.1  # 冷却系数
+    print(f"任务5 - 稳定性参数 r = {r}, 冷却系数 h = {h}")
+    
+    Nx = int(L/dx) + 1
+    Nt = 100
+    
     u = np.zeros((Nx, Nt))
-    u[:, 0] = np.sin(np.pi * x)
-
-    r = D * dt / dx**2
-    beta = h * dt / (C * rho)
-    for n in range(0, Nt - 1):
-        u[1:-1, n+1] = u[1:-1, n] + r * (u[2:, n] - 2*u[1:-1, n] + u[:-2, n]) - beta * (u[1:-1, n] - T_inf)
-    return u
-
+    u[:, 0] = 100
+    u[0, :] = 0
+    u[-1, :] = 0
+    
+    for j in range(Nt-1):
+        u[1:-1, j+1] = (1-2*r-h*dt)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
+    
+    # 可视化
+    plot_3d_solution(u, dx, dt, Nt, title='Task 5: Heat Diffusion with Newton Cooling')
 
 def plot_3d_solution(u, dx, dt, Nt, title):
-    fig = plt.figure()
+    """Plot 3D surface of temperature distribution"""
+    Nx = u.shape[0]
+    x = np.linspace(0, dx*(Nx-1), Nx)
+    t = np.linspace(0, dt*Nt, Nt)
+    X, T = np.meshgrid(x, t)
+    
+    fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection='3d')
-    X = np.arange(0, u.shape[0]) * dx
-    T = np.arange(0, Nt) * dt
-    X, T = np.meshgrid(X, T)
-    ax.plot_surface(X, T, u.T, cmap='hot')
-    ax.set_xlabel('位置 x (m)')
-    ax.set_ylabel('时间 t (s)')
-    ax.set_zlabel('温度 T')
+    ax.plot_surface(X, T, u.T, cmap='rainbow')
+    ax.set_xlabel('Position x (m)')
+    ax.set_ylabel('Time t (s)')
+    ax.set_zlabel('Temperature T (K)')
     ax.set_title(title)
     plt.show()
-
     
 if __name__ == "__main__":
     print("=== 铝棒热传导问题参考答案 ===")
