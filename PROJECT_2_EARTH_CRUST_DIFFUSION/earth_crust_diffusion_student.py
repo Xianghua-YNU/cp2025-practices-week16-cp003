@@ -5,44 +5,6 @@
 """
 import numpy as np
 import matplotlib.pyplot as plt
-
-def solve_earth_crust_diffusion():
-    """
-    实现显式差分法求解地壳热扩散问题
-    
-    返回:
-        tuple: (depth_array, temperature_matrix)
-        depth_array: 深度坐标数组 (m)
-        temperature_matrix: 温度场矩阵 (°C)
-    
-    物理背景: 模拟地壳中温度随深度和时间的周期性变化
-    数值方法: 显式差分格式
-    
-    实现步骤:
-    1. 设置物理参数和网格参数
-    2. 初始化温度场
-    3. 应用边界条件
-    4. 实现显式差分格式
-    5. 返回计算结果
-    """
-    # TODO: 设置物理参数
-    # TODO: 初始化数组
-    # TODO: 实现显式差分格式
-    # TODO: 返回计算结果
-    # 计算稳定性参数
-   import numpy as np
-import matplotlib.pyplot as plt
-
-# 物理常数
-D = 0.1  # 热扩散率 (m^2/day)
-A = 10.0  # 年平均地表温度 (°C)
-B = 12.0  # 地表温度振幅 (°C)
-TAU = 365.0  # 年周期 (days)
-T_BOTTOM = 11.0  # 20米深处温度 (°C)
-T_INITIAL = 10.0  # 初始温度 (°C)
-DEPTH_MAX = 20.0  # 最大深度 (m)
-
-
 def solve_earth_crust_diffusion(h=1.0, a=1.0, M=21, N=366, years=10):
     """
     求解地壳热扩散方程 (显式差分格式)
