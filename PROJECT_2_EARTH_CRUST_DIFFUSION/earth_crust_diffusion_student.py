@@ -36,5 +36,27 @@ if __name__ == "__main__":
     try:
         depth, T = solve_earth_crust_diffusion()
         print(f"计算完成，温度场形状: {T.shape}")
+        # 绘制结果
+        plt.figure(figsize=(10, 6))
+        
+        # 选择四个季节的时间点 (1年=365天)
+        seasons = {
+            'Spring': 365 + 80,   # 春季 (第1年3月21日左右)
+            'Summer': 365 + 172,   # 夏季 (第1年6月21日左右)
+            'Autumn': 365 + 265,   # 秋季 (第1年9月22日左右)
+            'Winter': 365 + 355    # 冬季 (第1年12月21日左右)
+        }
+        
+        for season, day in seasons.items():
+            time_index = int(day / 0.01)  # 转换为时间索引
+            plt.plot(T[time_index, :], depth, label=f'{season}')
+        
+        plt.gca().invert_yaxis()  # 深度向下为正
+        plt.xlabel('Temperature (°C)')
+        plt.ylabel('Depth (m)')
+        plt.title('Seasonal Temperature Profiles in Earth Crust')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
     except NotImplementedError as e:
         print(e)
