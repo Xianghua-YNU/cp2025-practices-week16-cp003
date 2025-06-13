@@ -39,13 +39,14 @@ class QuantumTunnelingSolver:
         Returns:
             复数波函数值数组
         """
+        # 返回复数形式的高斯波包
         return np.exp(self.k0*1j*x)*np.exp(-(x-self.x0)**2*np.log10(2)/self.d**2)
 
     def setup_potential(self):
         """构建势垒势能函数
         在空间中心位置放置矩形势垒
         """
-        self.V = np.zeros(self.Nx)
+        self.V = np.zeros(self.Nx)    # 初始化势能数组
         # 在中心区域设置势垒
         self.V[self.Nx//2:self.Nx//2+self.barrier_width] = self.barrier_height
         return self.V
