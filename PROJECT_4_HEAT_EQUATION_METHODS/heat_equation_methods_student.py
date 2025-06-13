@@ -12,10 +12,10 @@ This module implements four different numerical methods to solve the 1D heat equ
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import laplace
-from scipy.integrate import solve_ivp
-import scipy.linalg
-import time
+from scipy.ndimage import laplace    # 用于计算拉普拉斯算子（空间二阶导数）
+from scipy.integrate import solve_ivp    # 用于求解常微分方程
+import scipy.linalg    # 用于线性代数运算
+import time    # 用于计算运行时间
 
 class HeatEquationSolver:
     """
@@ -42,8 +42,8 @@ class HeatEquationSolver:
         self.T_final = T_final
         
         # Spatial grid
-        self.x = np.linspace(0, L, nx)
-        self.dx = L / (nx - 1)
+        self.x = np.linspace(0, L, nx)    # 创建空间网格
+        self.dx = L / (nx - 1)    # 空间步长
         
         # Initialize solution array
         self.u_initial = self._set_initial_condition()
@@ -55,7 +55,8 @@ class HeatEquationSolver:
         Returns:
             np.ndarray: Initial temperature distribution
         """
-        u0 = np.zeros(self.nx)
+        u0 = np.zeros(self.nx)    # 初始化为全零
+        # 在x=10到x=11之间设置矩形脉冲
         mask = (self.x >= 10) & (self.x <= 11)
         u0[mask] = 1.0
         # Apply boundary conditions
@@ -75,7 +76,7 @@ class HeatEquationSolver:
             dict: Solution data including time points and temperature arrays
         """
         if plot_times is None:
-            plot_times = [0, 1, 5, 15, 25]
+            plot_times = [0, 1, 5, 15, 25]    # 默认输出时间点
             
         # Stability check
         r = self.alpha * dt / (self.dx**2)
@@ -84,7 +85,7 @@ class HeatEquationSolver:
             print(f"Consider reducing dt to < {0.5 * self.dx**2 / self.alpha:.6f}")
         
         # Initialize
-        u = self.u_initial.copy()
+        u = self.u_initial.copy()    
         t = 0.0
         nt = int(self.T_final / dt) + 1
         
@@ -99,9 +100,10 @@ class HeatEquationSolver:
         start_time = time.time()
         
         # Time stepping
-        for n in range(1, nt):
+        for n in range(1, nt):    # 使用拉普拉斯算子计算二阶空间导数
             # Apply Laplacian using scipy.ndimage.laplace
             du_dt = r * laplace(u)
+            # 更新温度场 (显式方法)
             u += du_dt
             
             # Apply boundary conditions
@@ -112,10 +114,12 @@ class HeatEquationSolver:
             
             # Store solution at specified times
             for plot_time in plot_times:
+                # 检查当前时间是否接近指定时间点
                 if abs(t - plot_time) < dt/2 and plot_time not in [res_t for res_t in results['times']]:
                     results['times'].append(t)
                     results['solutions'].append(u.copy())
-        
+
+        # 记录计算时间和稳定性参数
         results['computation_time'] = time.time() - start_time
         results['stability_parameter'] = r
         
@@ -143,8 +147,8 @@ class HeatEquationSolver:
         u = self.u_initial.copy()
         
         # Build tridiagonal matrix for internal nodes
-        num_internal = self.nx - 2
-        banded_matrix = np.zeros((3, num_internal))
+        num_internal = self.nx - 2    # 内部节点数
+        banded_matrix = np.zeros((3, num_internal))    # 带状矩阵存储
         banded_matrix[0, 1:] = -r  # Upper diagonal
         banded_matrix[1, :] = 1 + 2*r  # Main diagonal
         banded_matrix[2, :-1] = -r  # Lower diagonal
@@ -172,7 +176,7 @@ class HeatEquationSolver:
             u[0] = 0.0  # Boundary conditions
             u[-1] = 0.0
             
-            t = n * dt
+            t = n * dt    # 当前时间
             
             # Store solution at specified times
             for plot_time in plot_times:
@@ -293,13 +297,13 @@ class HeatEquationSolver:
         
         # Solve ODE system
         sol = solve_ivp(
-            fun=self._heat_equation_ode,
-            t_span=(0, self.T_final),
-            y0=u0_internal,
-            method=method,
-            t_eval=plot_times,
-            rtol=1e-8,
-            atol=1e-10
+            fun=self._heat_equation_ode,   # ODE函数 
+            t_span=(0, self.T_final),    # 时间区间
+            y0=u0_internal,    # 初始条件
+            method=method,    # 积分方法
+            t_eval=plot_times,    # 指定输出时间点
+            rtol=1e-8,    # 相对容差
+            atol=1e-10    # 绝对容差
         )
         
         computation_time = time.time() - start_time
@@ -311,7 +315,8 @@ class HeatEquationSolver:
             'method': f'solve_ivp ({method})',
             'computation_time': computation_time
         }
-        
+
+        # 为每个时间点重建完整解
         for i in range(len(sol.t)):
             u_full = np.concatenate(([0.0], sol.y[:, i], [0.0]))
             results['solutions'].append(u_full)
@@ -382,11 +387,12 @@ class HeatEquationSolver:
             filename (str): Filename for saved figure
         """
         fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-        axes = axes.flatten()
+        axes = axes.flatten()    # 将2x2网格展平为一维数组
         
         method_names = ['explicit', 'implicit', 'crank_nicolson', 'solve_ivp']
-        colors = ['blue', 'red', 'green', 'orange', 'purple']
+        colors = ['blue', 'red', 'green', 'orange', 'purple']    # 不同时间点的颜色
         
+        # 为每种方法创建子图
         for idx, method_name in enumerate(method_names):
             ax = axes[idx]
             results = methods_results[method_name]
@@ -398,12 +404,12 @@ class HeatEquationSolver:
             ax.set_title(f"{results['method']}\n(Time: {results['computation_time']:.4f} s)")
             ax.set_xlabel('Position x')
             ax.set_ylabel('Temperature u(x,t)')
-            ax.grid(True, alpha=0.3)
+            ax.grid(True, alpha=0.3)     # 半透明网格
             ax.legend()
             ax.set_xlim(0, self.L)
-            ax.set_ylim(-0.1, 1.1)
+            ax.set_ylim(-0.1, 1.1)    # 固定y轴范围便于比较
         
-        plt.tight_layout()
+        plt.tight_layout()    # 自动调整子图间距
         
         if save_figure:
             plt.savefig(filename, dpi=300, bbox_inches='tight')
@@ -433,14 +439,17 @@ class HeatEquationSolver:
         
         for method_name, results in methods_results.items():
             if method_name == reference_method:
-                continue
+                continue     # 跳过参考方法本身
                 
             errors = []
+            # 比较每个时间点的解
             for i, (ref_sol, test_sol) in enumerate(zip(reference['solutions'], results['solutions'])):
                 if i < len(results['solutions']):
+                    # 计算L2范数误差
                     error = np.linalg.norm(ref_sol - test_sol, ord=2)
                     errors.append(error)
             
+            # 计算最大误差和平均误差
             max_error = max(errors) if errors else 0
             avg_error = np.mean(errors) if errors else 0
             
