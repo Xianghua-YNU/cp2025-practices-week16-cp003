@@ -89,13 +89,13 @@ def plot_seasonal_profiles(depth, temperature, seasons=[90, 180, 270, 365]):
                 label=f'Day {day}', linewidth=2)
     
     # 图表装饰
-    plt.xlabel('Depth (m)')
-    plt.ylabel('Temperature (°C)')
-    plt.title('Seasonal Temperature Profiles')
-    plt.grid(True)
-    plt.legend()
+    plt.xlabel('Depth (m)')    # 设置X轴标签
+    plt.ylabel('Temperature (°C)')    # 设置Y轴标签
+    plt.title('Seasonal Temperature Profiles')    # 设置图表标题
+    plt.grid(True)    # 添加网格线
+    plt.legend()    # 显示图例
     
-    plt.show()
+    plt.show()    # 显示图表
 
 
 if __name__ == "__main__":
