@@ -18,53 +18,64 @@ dt = 0.5      # 时间步长 (s)
 Nx = int(L/dx) + 1 # 空间格点数
 Nt = 2000     # 时间步数
 
-x = np.linspace(0, L, Nx)
+x = np.linspace(0, L, Nx)    # 生成铝棒上的空间坐标点
 
 def basic_heat_diffusion():
     """任务1: 基本热传导模拟"""
 
-    r = D*dt/(dx**2)
-    print(f"任务1 - 稳定性参数 r = {r}")
-    
+    r = D*dt/(dx**2)    # 计算数值模拟的稳定性参数
+    print(f"任务1 - 稳定性参数 r = {r}")    # 打印稳定性参数，判断稳定性
+
+    # 初始化温度矩阵，Nx空间点，Nt时间点
     u = np.zeros((Nx, Nt))
+    # 初始温度分布，所有点初始温度为100K
     u[:, 0] = 100
+    # 边界条件，两端始终维持在0K
     u[0, :] = 0
     u[-1, :] = 0
-    
+
+    # 时间步进循环，计算每个时间步的温度分布
     for j in range(Nt-1):
-        u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
+        u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])    # 使用显式有限差分法计算内部点的温度
     
-    return u
+    return u    # 返回模拟得到的温度分布
 
 # 任务2: 解析解与数值解比较
 def analytical_solution(n_terms=100):
     """解析解函数"""
+    # 生成空间和时间网格
     x = np.linspace(0, dx*(Nx-1), Nx)
     t = np.linspace(0, dt*Nt, Nt)
     x, t = np.meshgrid(x, t)
     s = 0
+    # 使用傅里叶级数计算解析解
     for i in range(n_terms):
-        j = 2*i + 1
+        j = 2*i + 1    # 奇数项系数
+        # 计算每个傅里叶项的贡献
         s += 400/(j*np.pi) * np.sin(j*np.pi*x/L) * np.exp(-(j*np.pi/L)**2 * t * D)
-    return s.T
+    return s.T    # 返回解析解温度分布
 
 # 任务3: 数值解稳定性分析
 def stability_analysis():
     """任务3: 数值解稳定性分析"""
-    dx = 0.01
-    dt = 0.6  # 使r>0.5
-    r = D*dt/(dx**2)
-    print(f"任务3 - 稳定性参数 r = {r} (r>0.5)")
+    # 生成空间和时间网格
+    dx = 0.01    # 空间步长
+    dt = 0.6  # 使r>0.5    # 时间步长，使r>0.5
+    r = D*dt/(dx**2)    # 计算稳定性参数
+    print(f"任务3 - 稳定性参数 r = {r} (r>0.5)")    # 打印稳定性参数
     
-    Nx = int(L/dx) + 1
-    Nt = 2000
+    Nx = int(L/dx) + 1    # 计算空间格点数
+    Nt = 2000    # 设置时间步数
     
-    u = np.zeros((Nx, Nt))
+    u = np.zeros((Nx, Nt))    # 初始化温度矩阵
+    # 初始温度分布和边界条件设置
     u[:, 0] = 100
     u[0, :] = 0
     u[-1, :] = 0
-    
+
+    # 时间步进循环，计算每个时间步的温度分布
     for j in range(Nt-1):
+        # 可视化不稳定解
         u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
     
     # 可视化不稳定解
@@ -73,20 +84,24 @@ def stability_analysis():
 # 任务4: 不同初始条件模拟
 def different_initial_condition():
     """任务4: 不同初始条件模拟"""
-    dx = 0.01
-    dt = 0.5
-    r = D*dt/(dx**2)
-    print(f"任务4 - 稳定性参数 r = {r}")
+    dx = 0.01    # 空间步长
+    dt = 0.5    # 时间步长
+    r = D*dt/(dx**2)    # 计算稳定性参数
+    print(f"任务4 - 稳定性参数 r = {r}")    # 打印稳定性参数
     
-    Nx = int(L/dx) + 1
-    Nt = 1000
-    
+    Nx = int(L/dx) + 1    # 计算空间格点数
+    Nt = 1000    # 设置时间步数
+
+    # 初始化温度矩阵
     u = np.zeros((Nx, Nt))
+    # 设置不同的初始温度分布
     u[:51, 0] = 100  # 左半部分初始温度100K
     u[50:, 0] = 50   # 右半部分初始温度50K
+    # 边界条件设置
     u[0, :] = 0
     u[-1, :] = 0
-    
+
+    # 时间步进循环，计算每个时间步的温度分布
     for j in range(Nt-1):
         u[1:-1, j+1] = (1-2*r)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
     
@@ -97,18 +112,19 @@ def different_initial_condition():
 # 任务5: 包含牛顿冷却定律的热传导
 def heat_diffusion_with_cooling():
     """任务5: 包含牛顿冷却定律的热传导"""
-    r = D*dt/(dx**2)
+    r = D*dt/(dx**2)    # 计算稳定性参数
     h = 0.1  # 冷却系数
     print(f"任务5 - 稳定性参数 r = {r}, 冷却系数 h = {h}")
     
-    Nx = int(L/dx) + 1
+    Nx = int(L/dx) + 1    # 计算空间格点数
     Nt = 100
     
-    u = np.zeros((Nx, Nt))
+    u = np.zeros((Nx, Nt))    # 初始化温度矩阵
     u[:, 0] = 100
     u[0, :] = 0
     u[-1, :] = 0
-    
+
+    # 时间步进循环，计算每个时间步的温度分布，包含牛顿冷却项
     for j in range(Nt-1):
         u[1:-1, j+1] = (1-2*r-h*dt)*u[1:-1, j] + r*(u[2:, j] + u[:-2, j])
     
@@ -117,11 +133,13 @@ def heat_diffusion_with_cooling():
 
 def plot_3d_solution(u, dx, dt, Nt, title):
     """Plot 3D surface of temperature distribution"""
-    Nx = u.shape[0]
+    Nx = u.shape[0]    # 获取空间格点数
+    # 生成空间和时间坐标
     x = np.linspace(0, dx*(Nx-1), Nx)
     t = np.linspace(0, dt*Nt, Nt)
     X, T = np.meshgrid(x, t)
-    
+
+    # 创建3D图表
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(X, T, u.T, cmap='rainbow')
